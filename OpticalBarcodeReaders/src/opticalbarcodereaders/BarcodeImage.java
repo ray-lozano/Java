@@ -7,7 +7,7 @@ Class: CST 338 - Software Design
 Assignment: Optical Barcode Readers and Writers
 */
 
-public class Assignment4
+public class opticalbarcodereaders
 {
 
 public static void main(String[] args)
