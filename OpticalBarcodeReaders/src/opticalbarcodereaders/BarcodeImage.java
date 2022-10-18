@@ -14,31 +14,8 @@ public class Opticalbarcodereaders {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        String[] sImageIn =
-      {
-         "                                               ",
-         "                                               ",
-         "                                               ",
-         "     * * * * * * * * * * * * * * * * * * * * * ",
-         "     *                                       * ",
-         "     ****** **** ****** ******* ** *** *****   ",
-         "     *     *    ****************************** ",
-         "     * **    * *        **  *    * * *   *     ",
-         "     *   *    *  *****    *   * *   *  **  *** ",
-         "     *  **     * *** **   **  *    **  ***  *  ",
-         "     ***  * **   **  *   ****    *  *  ** * ** ",
-         "     *****  ***  *  * *   ** ** **  *   * *    ",
-         "     ***************************************** ",  
-         "                                               ",
-         "                                               ",
-         "                                               "
-
-      };      
-            
-         
-      
-      String[] sImageIn_2 =
+    public static void main(String[] args) {      
+      String[] sImageIn =
       {
             "                                          ",
             "                                          ",
@@ -62,19 +39,12 @@ public class Opticalbarcodereaders {
       BarcodeImage bc = new BarcodeImage(sImageIn);
       Datamatrix dm = new Datamatrix(bc);
      
-      // First secret message
+      // Secret message
       dm.translateImageToText();
       dm.displayTextToConsole();
-      dm.displayImageToConsole();
+      dm.displayImageToConsole();  
       
-      // second secret message
-      bc = new BarcodeImage(sImageIn_2);
-      dm.scan(bc);
-      dm.translateImageToText();
-      dm.displayTextToConsole();
-      dm.displayImageToConsole();
-      
-      // create your own message
+      // Create your own message
       dm.readText("What a great resume builder this is!");
       dm.generateImageFromText();
       dm.displayTextToConsole();
@@ -223,14 +193,17 @@ class Datamatrix implements BarcodeIO {
     public Datamatrix(String text) {
         readText(text);
         image = new BarcodeImage();
+        this.actualWidth = 0;
+        this.actualHeight = 0;
     }
 
     // mutator for text
     public boolean readText(String text) {
         this.text = text;
-        if (text == "") {
+        if (text == "" || text.length() > BarcodeImage.MAX_WIDTH - 2) {
             return false;
         } else {
+            this.text = text;
             return true;
         }
     }
@@ -367,66 +340,45 @@ class Datamatrix implements BarcodeIO {
     // the methods from the BarcodeIO inferface
     @Override
     public boolean generateImageFromText() {
-       String[] str1 = new String[] { text };
-       //Attempted but no time
-       //Steps followed
-       //convert each char from text to binary and store into an array
-       //create new 2d array to change 1's to * and 0 to " "
-       //transpose new 2d array to match example inputs
-       //add spine for formatting 
-       //Create new barcode image from new formatted array
+       actualWidth = this.text.length() + 2;
+       actualHeight = 10;
+       this.cleanImage();
        
-       /*String[] binaryVals = {};
-        // TODO Auto-generated method stub   
-       //loop through text
+       //Set borders
+       for(int i = 0; i < actualWidth; i++)
+       {
+          this.image.setPixel(image.MAX_HEIGHT - 1, i, true);
+          if(i % 2 == 0) this.image.setPixel(image.MAX_HEIGHT - this.actualHeight, i, true);
+       }
+       for(int i = 0; i < actualHeight; i++)
+       {
+           this.image.setPixel(image.MAX_HEIGHT - this.actualHeight + i, 0, true);
+           if(i % 2 == 0) this.image.setPixel(image.MAX_HEIGHT - this.actualHeight + i, this.actualWidth - 1, true);
+       }
+       
+       //Translates the string value into a barcode
        for(int i = 0; i < text.length(); i++)
        {
-          //Convert all characters to binary
-          String binaryStr = Integer.toBinaryString(text.charAt(i));
-          //check if binary is 8 bit if not add zero to beginning
-          if(binaryStr.length() < 8)
-          {
-             for(int j = 0; j < 8 - binaryStr.length(); j++)
-             {
-                binaryStr = "0" + binaryStr;
-             }
-          }
-          //add binary to array
-          binaryVals = Arrays.copyOf(binaryVals, binaryVals.length + 1);
-          binaryVals[binaryVals.length - 1] = binaryStr;               
-       }       
-       //Create the image from binary
-       int m = binaryVals.length;
-       int n = binaryVals[0].length();
-       String[][] imageText = new String[m][n];
-       String[][] image = new String[binaryVals.length][binaryVals[0].length()];
-       for(int x = 0; x < n; x++) {
-          for(int y = 0; y < m; y++) {
-              if(binaryVals[y].charAt(x) == '1')
-              {
-                 if(image[x] != null) imageText[x] += "*";
-                 else
-                 {
-                    
-                 }
-              }
-          }
-      }*/
+           writeCharToCol(i, (int) text.charAt(i));
+       }
        
-       //add through each column
-       //if 1 add a star
-       
-       //else add space
-       /*for(int i = 0; i < text.length(); i++)
-       {
-          String[] str1 = Integer.toBinaryString(text.charAt(i));
-       }*/
-        image = new BarcodeImage(str1);
-        if (image == null) {
-            return false;
-        } else {
-            return true;
+       return true;
+    }
+    
+    //Translates the text value into barcode.
+    private boolean writeCharToCol(int col, int textTranslation)
+    {
+        int translate = 49;
+        String binData = Integer.toString(textTranslation, 2);
+        for(int i = 0; i < binData.length(); i++)
+        {
+            if((int) (binData.charAt(i)) == translate)
+            {
+                this.image.setPixel((this.image.MAX_HEIGHT - this.actualHeight - 1 +
+                    (this.actualHeight - binData.length()) + i), col + 1, true);
+            }
         }
+        return true;
     }
 
     @Override    
